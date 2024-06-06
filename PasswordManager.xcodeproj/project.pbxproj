@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E19C61B52C11936B0092A3A6 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = E19C61B42C11936B0092A3A6 /* SQLite */; };
+		E19C61B82C11B9F30092A3A6 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = E19C61B72C11B9F30092A3A6 /* KeychainAccess */; };
 		E1CF62A42C10E1F900D21642 /* PasswordManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CF62A32C10E1F900D21642 /* PasswordManagerApp.swift */; };
 		E1CF62A62C10E1F900D21642 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CF62A52C10E1F900D21642 /* ContentView.swift */; };
 		E1CF62A82C10E1FB00D21642 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E1CF62A72C10E1FB00D21642 /* Assets.xcassets */; };
@@ -26,6 +28,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E19C61B82C11B9F30092A3A6 /* KeychainAccess in Frameworks */,
+				E19C61B52C11936B0092A3A6 /* SQLite in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,6 +87,10 @@
 			dependencies = (
 			);
 			name = PasswordManager;
+			packageProductDependencies = (
+				E19C61B42C11936B0092A3A6 /* SQLite */,
+				E19C61B72C11B9F30092A3A6 /* KeychainAccess */,
+			);
 			productName = PasswordManager;
 			productReference = E1CF62A02C10E1F900D21642 /* PasswordManager.app */;
 			productType = "com.apple.product-type.application";
@@ -111,6 +119,10 @@
 				Base,
 			);
 			mainGroup = E1CF62972C10E1F900D21642;
+			packageReferences = (
+				E19C61B32C11936B0092A3A6 /* XCRemoteSwiftPackageReference "SQLite" */,
+				E19C61B62C11B9F30092A3A6 /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+			);
 			productRefGroup = E1CF62A12C10E1F900D21642 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -346,6 +358,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E19C61B32C11936B0092A3A6 /* XCRemoteSwiftPackageReference "SQLite" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stephencelis/SQLite.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.3;
+			};
+		};
+		E19C61B62C11B9F30092A3A6 /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E19C61B42C11936B0092A3A6 /* SQLite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E19C61B32C11936B0092A3A6 /* XCRemoteSwiftPackageReference "SQLite" */;
+			productName = SQLite;
+		};
+		E19C61B72C11B9F30092A3A6 /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E19C61B62C11B9F30092A3A6 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E1CF62982C10E1F900D21642 /* Project object */;
 }
