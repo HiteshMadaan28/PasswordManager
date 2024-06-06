@@ -14,17 +14,15 @@ import KeychainAccess
 let keychain = Keychain(service: "com.example.PasswordManager")
 
 func generateAndStoreEncryptionKey() throws {
-    // Generate a random encryption key
+    
     if keychain[data: "encryptionKey"] == nil {
-        // Generate a random encryption key
+       
         let key = SymmetricKey(size: .bits256)
-        
-        // Store the key in the Keychain
         try keychain.set(key.withUnsafeBytes { Data($0) }, key: "encryptionKey")
     }
 }
 
-struct AddRecordView: SwiftUI.View {
+struct AddRecordView: SwiftUI.View{
     @Environment(\.presentationMode) var presentationMode
     @State private var name = ""
     @State private var email = ""
@@ -32,55 +30,89 @@ struct AddRecordView: SwiftUI.View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     var onSave: (String, String, String) -> Void
+    @State private var isPasswordVisible = true
     
     var body: some SwiftUI.View {
         VStack {
-            VStack {
-                Section {
-                    TextField("Name", text: $name)
-                        .foregroundStyle(.primary)
-                }
-                .frame(width: 300,height: 60)
+            
+            VStack{
                 
-                Section {
-                    TextField("UserName/Email", text: $email)
-                }
-                .frame(width: 300,height: 60)
+                TextField("Account Name", text: $name)
+                    .padding()
+                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray.opacity(0.2), style: StrokeStyle(lineWidth: 1.0)))
+                    .background(.white)
+                    .padding(10)
+                    
                 
+                TextField("UserName/Email", text: $email)
+                    .padding()
+                    .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray.opacity(0.2), style: StrokeStyle(lineWidth: 1.0)))
+                    .background(Color.white)
+                    .padding(10)
                 
-                Section {
-                    SecureField("Password", text: $password)
-                }
-                .frame(width: 300,height: 60)
-                
-            }
-            Button("Save") {
-                if name.isEmpty {
-                    alertMessage = "Name is required."
-                    showAlert = true
-                } else if email.isEmpty {
-                    alertMessage = "Email is required."
-                    showAlert = true
-                } else if password.isEmpty {
-                    alertMessage = "Password is required."
-                    showAlert = true
-                } else {
-                    do {
-                        let encryptedPassword = try encryptPassword(password)
-                        onSave(name, email, encryptedPassword)
-                        presentationMode.wrappedValue.dismiss()
-                    } catch {
-                        showAlert(message: "Failed to encrypt password.")
+            
+                HStack {
+                    if isPasswordVisible {
+                        SecureField("Password", text: $password)
+                            .padding()
+                            .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray.opacity(0.2), style: StrokeStyle(lineWidth: 1.0)))
+                            .background(Color.white)
+                            .padding(10)
+                    } else {
+                        TextField("Password", text: $password)
+                            .padding()
+                            .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray.opacity(0.2), style: StrokeStyle(lineWidth: 1.0)))
+                            .background(Color.white)
+                            .padding(10)
+                    }
+                    Button(action: {
+                        isPasswordVisible.toggle()
+                    }) {
+                        Image(systemName: isPasswordVisible ? "eye.slash.fill" : "eye.fill")
+                            .foregroundColor(.gray)
                     }
                 }
-            }
-            .presentationDetents([.fraction(0.6)])
-            .presentationDragIndicator(.visible)
-            .padding()
-            .alert(isPresented: $showAlert) {
-                Alert(title: Text("Validation Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+                
+            }.padding()
+            
+            VStack{
+                
+                Button("Add New Account") {
+                    if name.isEmpty {
+                        alertMessage = "Name is required."
+                        showAlert = true
+                    } else if email.isEmpty {
+                        alertMessage = "Email is required."
+                        showAlert = true
+                    } else if password.isEmpty {
+                        alertMessage = "Password is required."
+                        showAlert = true
+                    } else {
+                        do {
+                            let encryptedPassword = try encryptPassword(password)
+                            onSave(name, email, encryptedPassword)
+                            presentationMode.wrappedValue.dismiss()
+                        } catch {
+                            showAlert(message: "Failed to encrypt password.")
+                        }
+                    }
+                }
+                .frame(width: 350,height:60)
+                .foregroundColor(Color.white)
+                .font(.system(size: 20, weight: Font.Weight.bold))
+                .background(Color.black)
+                .cornerRadius(20)
+                .presentationDetents([.medium,.large])
+                .presentationDragIndicator(.visible)
+                .padding()
+                .alert(isPresented: $showAlert) {
+                    Alert(title: Text("Validation Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+                }
+                
             }
         }
+        .frame(maxWidth: .infinity,maxHeight: .infinity)
+        .background(.thinMaterial)
     }
     
     // Encrypt password using the encryption key stored in the Keychain
@@ -123,6 +155,8 @@ struct AccountDetailView: SwiftUI.View {
     
     @SwiftUI.Binding var isSheetPresented: Bool
     
+    @State private var isPasswordVisible = false
+    
     var onDelete: () -> Void
     
     init(name: String, email: String, encryptedPassword: String, onSaveChanges: @escaping (String, String, String) -> Void, onDelete: @escaping () -> Void,isSheetPresented: SwiftUI.Binding<Bool>) {
@@ -141,77 +175,108 @@ struct AccountDetailView: SwiftUI.View {
     }
     
     var body: some SwiftUI.View {
-        VStack(alignment: .leading) {
-        
-            Text("Account Details")
-                .bold()
-                .foregroundColor(.blue)
-                .font(.largeTitle)
-                .padding()
+        VStack{
             
-            VStack(alignment: .leading) {
-                Text("Account Type")
-                    .font(.subheadline)
-                Text(name)
+            VStack(alignment: .leading,spacing: 15) {
+                
+                Text("Account Details")
                     .bold()
+                    .foregroundColor(.blue)
+                    .padding()
                     .font(.title)
-            }
-            .padding()
-            
-            VStack(alignment: .leading) {
-                Text("Username/ Email")
-                    .font(.subheadline)
-                TextField("\(email)", text: $editedEmail)
-                    .bold()
-                    .font(.title)
-            }
-            .padding()
-            
-            VStack(alignment: .leading) {
-                Text("Password")
-                    .font(.subheadline)
-                SecureField("\(decryptedPassword)", text: $editedPassword)
-                    .bold()
-                    .font(.title)
-            }
-            .padding()
-            
-            HStack {
-                Button("Edit") {
-                    do {
-                        let encryptedPassword = try encryptPassword(editedPassword)
-                        onSaveChanges(name, email, encryptedPassword)
-                        
-                    } catch {
-                        showAlert(message: "Failed to encrypt editpassword.")
+                
+                Spacer()
+                
+                VStack(alignment: .leading) {
+                    Text("Account Type")
+                        .foregroundStyle(Color.gray.opacity(0.5))
+                    Text(name)
+                        .bold()
+                        .font(.title2)
+                }
+                
+                VStack(alignment: .leading) {
+                    Text("Username/ Email")
+                        .foregroundStyle(Color.gray.opacity(0.5))
+                    TextField("\(email)", text: $editedEmail)
+                        .bold()
+                        .font(.title2)
+                }
+                
+                
+                VStack(alignment: .leading) {
+                    Text("Password")
+                        .foregroundStyle(Color.gray.opacity(0.5))
+                    HStack {
+                        if isPasswordVisible {
+                            TextField("\(decryptedPassword)", text: $editedPassword)
+                                .font(.title2)
+                                .disableAutocorrection(true)
+                        } else {
+                            TextField("********", text: $editedPassword)
+                                .font(.title2)
+                                .disableAutocorrection(true)
+                        }
+                        Button(action: {
+                            isPasswordVisible.toggle()
+                        }) {
+                            Image(systemName: isPasswordVisible ? "eye.fill" : "eye.slash.fill")
+                                .foregroundColor(.gray)
+                        }
                     }
                 }
-                .buttonStyle(.borderedProminent)
-                .padding(.trailing)
                 
-                Button("Delete") {
-                    onDelete()
-                    isSheetPresented = false
+                Spacer()
+                HStack {
+                    Button("Edit") {
+                        do {
+                            let updatedEmail = editedEmail.isEmpty ? email : editedEmail
+                            let updatedPassword = editedPassword.isEmpty ? encryptedPassword : try encryptPassword(editedPassword)
+                           
+                            onSaveChanges(name, updatedEmail, updatedPassword)
+                            
+                        } catch {
+                            showAlert(message: "Failed to encrypt editpassword.")
+                        }
+                    }
+                    .font(.system(size: 20, weight: Font.Weight.bold))
+                    .foregroundColor(.white)
+                    .frame(width: 170,height:55)
+                    .background(Color.black)
+                    .cornerRadius(20)
+                    
+                    Spacer()
+                    
+                    Button("Delete") {
+                        onDelete()
+                        isSheetPresented = false
+                    }
+                    .frame(width: 170,height:55)
+                    .foregroundColor(Color.white)
+                    .font(.system(size: 20, weight: Font.Weight.bold))
+                    .background(Color.red)
+                    .cornerRadius(20)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
+            }
+            .cornerRadius(10)
+            .presentationDetents([.fraction(0.6)])
+            .presentationDragIndicator(.visible)
+            .padding()
+            .onAppear {
+                do {
+                    decryptedPassword = try decryptPassword(encryptedPassword)
+                } catch {
+                    showAlert(message: "Failed to decrypt password.")
+                }
+            }
+            .alert(isPresented: $showAlert) {
+                Alert(title: Text("Decryption Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
             }
         }
-        .background(Color.white)
-        .cornerRadius(10)
-        .presentationDetents([.fraction(0.6)])
-        .presentationDragIndicator(.visible)
-        .padding()
-        .onAppear {
-            do {
-                decryptedPassword = try decryptPassword(encryptedPassword)
-            } catch {
-                showAlert(message: "Failed to decrypt password.")
-            }
-        }
-        .alert(isPresented: $showAlert) {
-            Alert(title: Text("Decryption Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
-        }
+        .frame(maxWidth: .infinity,maxHeight: .infinity)
+        .background(.ultraThinMaterial)
+        
+        
     }
     
     func encryptPassword(_ password: String) throws -> String {
@@ -268,46 +333,79 @@ struct ContentView: SwiftUI.View {
     
     var body: some SwiftUI.View {
         NavigationView {
-            VStack {
+            ZStack{
                 if unlocked {
-                    List(accounts, id: \.0) { account in
+                    VStack(alignment:.leading,spacing: 20){
+                        ForEach(accounts, id: \.0) { account in
+                            HStack{
+                                Spacer()
+                                Text("\(account.0)")
+                                    .bold()
+                                    .font(.title)
+                                
+                                Text("********")
+                                    .foregroundColor(.gray)
+                                    .font(.title2)
+                                
+                                Spacer()
+                                Spacer()
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                Spacer()
+                                
+                            }
+                            .frame(width: 350,height: 70)
+                            .background(Color.white)
+                            .cornerRadius(40)
+                            .onTapGesture {
+                                selectedAccount = account
+                                showDetailSheet = true
+                            }
+                        }
+                        Spacer()
+                    }
+                    
+                    VStack
+                    {
+                        Spacer()
+                        
                         HStack{
-                            Text("\(account.0)")
-                                .font(.title)
                             Spacer()
-                            Text("********")
-                                .font(.title2)
+                            Button(action: {
+                                showAddingSheet.toggle()
+                            }) {
+                                Image(systemName: "plus")
+                                    .bold()
+                                    .font(.system(.largeTitle))
+                                    .frame(width: 77, height: 70)
+                                    .foregroundColor(Color.white)
+                                    .padding(.bottom, 5)
+                                    .background(Color.blue)
+                                    .cornerRadius(9)
+                                    .padding()
+                                    
+                                    
+                            }
+                            .sheet(isPresented: $showAddingSheet) {
+                                AddRecordView { name, email, password in
+                                    saveRecord(name: name, email: email, password: password)
+                                    accounts = fetchRecords()
+                                }
+                                .presentationDetents([.medium])
+                                .presentationDragIndicator(.visible)
+                            }
+                            .sheet(isPresented: self.$showDetailSheet) {
+                                if let selectedAccount = selectedAccount {
+                                    AccountDetailView(name: selectedAccount.0, email: selectedAccount.1, encryptedPassword: selectedAccount.2,onSaveChanges: {name, email, password in
+                                        // Update the record in the database
+                                        updateRecord(name: name, email: email, password: password)
+                                        // Reload accounts from the database
+                                        accounts = fetchRecords()
+                                    },onDelete:{ deleteRecord(name:selectedAccount.0)},isSheetPresented: self.$showDetailSheet)
+                                }
+                                
+                            }
                         }
-                        .onTapGesture {
-                            selectedAccount = account
-                            showDetailSheet = true
-                        }
-                    }
-                    Button(action: {
-                        showAddingSheet.toggle()
-                    }) {
-                        Image(systemName: "plus")
-                            .font(.largeTitle)
-                            .padding()
-                    }
-                    .sheet(isPresented: $showAddingSheet) {
-                        AddRecordView { name, email, password in
-                            saveRecord(name: name, email: email, password: password)
-                            accounts = fetchRecords()
-                        }
-                        .presentationDetents([.medium])
-                        .presentationDragIndicator(.visible)
-                    }
-                    .sheet(isPresented: self.$showDetailSheet) {
-                        if let selectedAccount = selectedAccount {
-                            AccountDetailView(name: selectedAccount.0, email: selectedAccount.1, encryptedPassword: selectedAccount.2,onSaveChanges: {name, email, password in
-                                // Update the record in the database
-                                updateRecord(name: name, email: email, password: password)
-                                // Reload accounts from the database
-                                accounts = fetchRecords()
-                            },onDelete:{ deleteRecord(name:selectedAccount.0)},isSheetPresented: self.$showDetailSheet)
-                        }
-                            
                     }
                 } else {
                     Text("Locked")
@@ -315,7 +413,8 @@ struct ContentView: SwiftUI.View {
             }
             .onAppear(){
                 do {
-                    try authenticate()
+                    selectedAccount = accounts.first
+                    authenticate()
                     try generateAndStoreEncryptionKey()
                     print("Encryption key generated and stored successfully.")
                 } catch {
@@ -323,6 +422,7 @@ struct ContentView: SwiftUI.View {
                 }
             }
             .navigationTitle("Password Manager")
+            .background(.ultraThinMaterial)
         }
     }
     
