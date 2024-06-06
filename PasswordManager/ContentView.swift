@@ -13,23 +13,32 @@ import KeychainAccess
 
 let keychain = Keychain(service: "com.example.PasswordManager")
 
+//Generating key and store it
 func generateAndStoreEncryptionKey() throws {
     
+    //Check if a key exists or not
     if keychain[data: "encryptionKey"] == nil {
-       
+        
         let key = SymmetricKey(size: .bits256)
         try keychain.set(key.withUnsafeBytes { Data($0) }, key: "encryptionKey")
     }
 }
 
+//Struc AddRecordView - for Adding Values to our Variable name,email,password
 struct AddRecordView: SwiftUI.View{
     @Environment(\.presentationMode) var presentationMode
     @State private var name = ""
     @State private var email = ""
     @State private var password = ""
+    
+    //Variables for alert
     @State private var showAlert = false
     @State private var alertMessage = ""
+    
+    //onSave will Insert the Data in SQLite database
     var onSave: (String, String, String) -> Void
+    
+    //For Password Visibility
     @State private var isPasswordVisible = true
     
     var body: some SwiftUI.View {
@@ -42,7 +51,7 @@ struct AddRecordView: SwiftUI.View{
                     .overlay(RoundedRectangle(cornerRadius: 10.0).strokeBorder(Color.gray.opacity(0.2), style: StrokeStyle(lineWidth: 1.0)))
                     .background(.white)
                     .padding(10)
-                    
+                
                 
                 TextField("UserName/Email", text: $email)
                     .padding()
@@ -50,7 +59,7 @@ struct AddRecordView: SwiftUI.View{
                     .background(Color.white)
                     .padding(10)
                 
-            
+                
                 HStack {
                     if isPasswordVisible {
                         SecureField("Password", text: $password)
@@ -84,7 +93,10 @@ struct AddRecordView: SwiftUI.View{
                     } else if email.isEmpty {
                         alertMessage = "Email is required."
                         showAlert = true
-                    } else if password.isEmpty {
+                    } else if !isValidEmail(email) {
+                        alertMessage = "Invalid email format."
+                        showAlert = true
+                    }else if password.isEmpty {
                         alertMessage = "Password is required."
                         showAlert = true
                     } else {
@@ -114,6 +126,13 @@ struct AddRecordView: SwiftUI.View{
         .frame(maxWidth: .infinity,maxHeight: .infinity)
         .background(.thinMaterial)
     }
+    
+    // Email validation function using regular expression
+    func isValidEmail(_ email: String) -> Bool {
+            let emailRegEx = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$"
+            let emailPred = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
+            return emailPred.evaluate(with: email)
+        }
     
     // Encrypt password using the encryption key stored in the Keychain
     func encryptPassword(_ password: String) throws -> String {
@@ -232,7 +251,7 @@ struct AccountDetailView: SwiftUI.View {
                         do {
                             let updatedEmail = editedEmail.isEmpty ? email : editedEmail
                             let updatedPassword = editedPassword.isEmpty ? encryptedPassword : try encryptPassword(editedPassword)
-                           
+                            
                             onSaveChanges(name, updatedEmail, updatedPassword)
                             
                         } catch {
@@ -383,8 +402,8 @@ struct ContentView: SwiftUI.View {
                                     .background(Color.blue)
                                     .cornerRadius(9)
                                     .padding()
-                                    
-                                    
+                                
+                                
                             }
                             .sheet(isPresented: $showAddingSheet) {
                                 AddRecordView { name, email, password in
@@ -482,6 +501,7 @@ struct ContentView: SwiftUI.View {
         }
     }
     
+    //updateRecord
     func updateRecord(name: String, email: String, password: String) {
         do {
             let db = try Connection(getDatabasePath())
@@ -496,6 +516,7 @@ struct ContentView: SwiftUI.View {
         }
     }
     
+    //deleteRecord() - Deleting record based on name(like, google,twiter)
     func deleteRecord(name: String) {
         do {
             let db = try Connection(getDatabasePath())
@@ -513,6 +534,7 @@ struct ContentView: SwiftUI.View {
         }
     }
     
+    //authenticate() - for authenticate using biometric (eg. FaceID)
     func authenticate() {
         let context = LAContext()
         var error: NSError?
