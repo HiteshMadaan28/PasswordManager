@@ -15,10 +15,13 @@ let keychain = Keychain(service: "com.example.PasswordManager")
 
 func generateAndStoreEncryptionKey() throws {
     // Generate a random encryption key
-    let key = SymmetricKey(size: .bits256)
-
-    // Store the key in the Keychain
-    try keychain.set(key.withUnsafeBytes { Data($0) }, key: "encryptionKey")
+    if keychain[data: "encryptionKey"] == nil {
+        // Generate a random encryption key
+        let key = SymmetricKey(size: .bits256)
+        
+        // Store the key in the Keychain
+        try keychain.set(key.withUnsafeBytes { Data($0) }, key: "encryptionKey")
+    }
 }
 
 struct AddRecordView: SwiftUI.View {
@@ -71,6 +74,8 @@ struct AddRecordView: SwiftUI.View {
                     }
                 }
             }
+            .presentationDetents([.fraction(0.6)])
+            .presentationDragIndicator(.visible)
             .padding()
             .alert(isPresented: $showAlert) {
                 Alert(title: Text("Validation Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
@@ -110,24 +115,30 @@ struct AccountDetailView: SwiftUI.View {
     @State private var decryptedPassword: String = ""
     @State private var showAlert = false
     @State private var alertMessage = ""
+    
     var onSaveChanges: (String, String, String) -> Void
+    
     @State private var editedEmail: String
     @State private var editedPassword: String
     
+    @SwiftUI.Binding var isSheetPresented: Bool
+    
     var onDelete: () -> Void
     
-    init(name: String, email: String, encryptedPassword: String, onSaveChanges: @escaping (String, String, String) -> Void, onDelete: @escaping () -> Void) {
-            self.name = name
-            self.email = email
-            self.encryptedPassword = encryptedPassword
-            self.onSaveChanges = onSaveChanges
-            self.onDelete = onDelete
-            
-            // Initialize the edited email with the current email value
-            self._editedEmail = State(initialValue: email)
-            // Initialize the edited password as an empty string
-            self._editedPassword = State(initialValue: "")
-        }
+    init(name: String, email: String, encryptedPassword: String, onSaveChanges: @escaping (String, String, String) -> Void, onDelete: @escaping () -> Void,isSheetPresented: SwiftUI.Binding<Bool>) {
+        self.name = name
+        self.email = email
+        self.encryptedPassword = encryptedPassword
+        self.onSaveChanges = onSaveChanges
+        self.onDelete = onDelete
+        self._isSheetPresented = isSheetPresented
+        
+        // Initialize the edited email with the current email value
+        self._editedEmail = State(initialValue: email)
+        // Initialize the edited password as an empty string
+        self._editedPassword = State(initialValue: "")
+        
+    }
     
     var body: some SwiftUI.View {
         VStack(alignment: .leading) {
@@ -180,6 +191,7 @@ struct AccountDetailView: SwiftUI.View {
                 
                 Button("Delete") {
                     onDelete()
+                    isSheetPresented = false
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
@@ -187,6 +199,8 @@ struct AccountDetailView: SwiftUI.View {
         }
         .background(Color.white)
         .cornerRadius(10)
+        .presentationDetents([.fraction(0.6)])
+        .presentationDragIndicator(.visible)
         .padding()
         .onAppear {
             do {
@@ -284,14 +298,14 @@ struct ContentView: SwiftUI.View {
                         .presentationDetents([.medium])
                         .presentationDragIndicator(.visible)
                     }
-                    .sheet(isPresented: $showDetailSheet) {
+                    .sheet(isPresented: self.$showDetailSheet) {
                         if let selectedAccount = selectedAccount {
                             AccountDetailView(name: selectedAccount.0, email: selectedAccount.1, encryptedPassword: selectedAccount.2,onSaveChanges: {name, email, password in
                                 // Update the record in the database
                                 updateRecord(name: name, email: email, password: password)
                                 // Reload accounts from the database
                                 accounts = fetchRecords()
-                            },onDelete:{ deleteRecord(name:selectedAccount.0)})
+                            },onDelete:{ deleteRecord(name:selectedAccount.0)},isSheetPresented: self.$showDetailSheet)
                         }
                             
                     }
