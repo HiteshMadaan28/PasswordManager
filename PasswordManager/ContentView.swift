@@ -24,6 +24,216 @@ func generateAndStoreEncryptionKey() throws {
     }
 }
 
+
+struct ContentView: SwiftUI.View {
+    @State private var accounts: [(String, String, String)] = []
+    @State private var unlocked: Bool = false
+    @State private var showAddingSheet: Bool = false
+    @State private var showDetailSheet: Bool = false
+    @State private var selectedAccount: (String, String, String)? = nil
+    
+    var body: some SwiftUI.View {
+        NavigationView {
+            ZStack{
+                if unlocked {
+                    ScrollView{
+                        VStack(alignment:.leading,spacing: 20){
+                            ForEach(accounts, id: \.0) { account in
+                                HStack{
+                                    Spacer()
+                                    Text("\(account.0)")
+                                        .bold()
+                                        .font(.title)
+                                    
+                                    Text("********")
+                                        .foregroundColor(.gray)
+                                        .font(.title2)
+                                    
+                                    Spacer()
+                                    Spacer()
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                    Spacer()
+                                    
+                                }
+                                .frame(width: 350,height: 70)
+                                .background(Color.white)
+                                .cornerRadius(40)
+                                .onTapGesture {
+                                    selectedAccount = account
+                                    showDetailSheet = true
+                                }
+                            }
+                            Spacer()
+                        }
+                    }
+                    
+                    VStack
+                    {
+                        Spacer()
+                        
+                        HStack{
+                            Spacer()
+                            Button(action: {
+                                showAddingSheet.toggle()
+                            }) {
+                                Image(systemName: "plus")
+                                    .bold()
+                                    .font(.system(.largeTitle))
+                                    .frame(width: 77, height: 70)
+                                    .foregroundColor(Color.white)
+                                    .padding(.bottom, 5)
+                                    .background(Color.blue)
+                                    .cornerRadius(9)
+                                    .padding()
+                                
+                                
+                            }
+                            .sheet(isPresented: $showAddingSheet) {
+                                AddRecordView { name, email, password in
+                                    saveRecord(name: name, email: email, password: password)
+                                    accounts = fetchRecords()
+                                }
+                                .presentationDetents([.medium])
+                                .presentationDragIndicator(.visible)
+                            }
+                            .sheet(isPresented: self.$showDetailSheet) {
+                                if let selectedAccount = selectedAccount {
+                                    AccountDetailView(name: selectedAccount.0, email: selectedAccount.1, encryptedPassword: selectedAccount.2,onSaveChanges: {name, email, password in
+                                        // Update the record in the database
+                                        updateRecord(name: name, email: email, password: password)
+                                        // Reload accounts from the database
+                                        accounts = fetchRecords()
+                                    },onDelete:{ deleteRecord(name:selectedAccount.0)},isSheetPresented: self.$showDetailSheet)
+                                }
+                                
+                            }
+                        }
+                    }
+                } else {
+                    Text("Locked")
+                }
+            }
+            .onAppear(){
+                do {
+                    selectedAccount = accounts.first
+                    authenticate()
+                    try generateAndStoreEncryptionKey()
+                    print("Encryption key generated and stored successfully.")
+                } catch {
+                    print("Error generating and storing encryption key: \(error)")
+                }
+            }
+            .navigationTitle("Password Manager")
+            .background(.ultraThinMaterial)
+        }
+    }
+    
+    func saveRecord(name: String, email: String, password: String) {
+        do {
+            // Save record to database
+            let db = try Connection(getDatabasePath())
+            let records = Table("accounts")
+            let nameColumn = Expression<String>("name")
+            let emailColumn = Expression<String>("email")
+            let passwordColumn = Expression<String>("password")
+            try db.run(records.create(ifNotExists: true) { t in
+                t.column(nameColumn)
+                t.column(emailColumn)
+                t.column(passwordColumn)
+            })
+            try db.run(records.insert(nameColumn <- name, emailColumn <- email, passwordColumn <- password))
+        } catch {
+            print("Failed to save record: \(error)")
+        }
+    }
+    
+    func fetchRecords() -> [(String, String, String)] {
+        do {
+            let db = try Connection(getDatabasePath())
+            let records = Table("accounts")
+            let nameColumn = Expression<String>("name")
+            let emailColumn = Expression<String>("email")
+            let passwordColumn = Expression<String>("password")
+            var result: [(String, String, String)] = []
+            for record in try db.prepare(records) {
+                let name = record[nameColumn]
+                let email = record[emailColumn]
+                let password = record[passwordColumn]
+                result.append((name, email, password))
+            }
+            return result
+        } catch {
+            print("Failed to fetch records: \(error)")
+            return []
+        }
+    }
+    
+    //updateRecord
+    func updateRecord(name: String, email: String, password: String) {
+        do {
+            let db = try Connection(getDatabasePath())
+            let accounts = Table("accounts")
+            let nameColumn = Expression<String>("name")
+            let emailColumn = Expression<String>("email")
+            let passwordColumn = Expression<String>("password")
+            let filteredRecord = accounts.filter(nameColumn == name)
+            try db.run(filteredRecord.update(emailColumn <- email, passwordColumn <- password))
+        } catch {
+            print("Failed to update record: \(error)")
+        }
+    }
+    
+    //deleteRecord() - Deleting record based on name(like, google,twiter)
+    func deleteRecord(name: String) {
+        do {
+            let db = try Connection(getDatabasePath())
+            let records = Table("accounts")
+            let nameColumn = Expression<String>("name")
+            
+            // Delete record from the database
+            let recordToDelete = records.filter(nameColumn == name)
+            try db.run(recordToDelete.delete())
+            
+            // Refresh the accounts array after deletion
+            accounts = fetchRecords()
+        } catch {
+            print("Failed to delete record: \(error)")
+        }
+    }
+    
+    //authenticate() - for authenticate using biometric (eg. FaceID)
+    func authenticate() {
+        let context = LAContext()
+        var error: NSError?
+        
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+            let reason = "We need to unlock your data."
+            
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, authenticationError in
+                if success {
+                    DispatchQueue.main.async {
+                        self.unlocked = true
+                        self.accounts = fetchRecords()
+                    }
+                } else {
+                    print("Authentication failed: \(String(describing: authenticationError))")
+                }
+            }
+        } else {
+            print("No biometrics available: \(String(describing: error))")
+        }
+    }
+    
+    func getDatabasePath() -> String {
+        let fileManager = FileManager.default
+        let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
+        let documentDirectory = urls[0]
+        return documentDirectory.appendingPathComponent("db.sqlite3").path
+    }
+}
+
+
 //Struc AddRecordView - for Adding Values to our Variable name,email,password
 struct AddRecordView: SwiftUI.View{
     @Environment(\.presentationMode) var presentationMode
@@ -129,10 +339,10 @@ struct AddRecordView: SwiftUI.View{
     
     // Email validation function using regular expression
     func isValidEmail(_ email: String) -> Bool {
-            let emailRegEx = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$"
-            let emailPred = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
-            return emailPred.evaluate(with: email)
-        }
+        let emailRegEx = "^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$"
+        let emailPred = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
+        return emailPred.evaluate(with: email)
+    }
     
     // Encrypt password using the encryption key stored in the Keychain
     func encryptPassword(_ password: String) throws -> String {
@@ -343,227 +553,6 @@ enum DecryptionError: Error {
 
 
 
-struct ContentView: SwiftUI.View {
-    @State private var accounts: [(String, String, String)] = []
-    @State private var unlocked: Bool = false
-    @State private var showAddingSheet: Bool = false
-    @State private var showDetailSheet: Bool = false
-    @State private var selectedAccount: (String, String, String)? = nil
-    
-    var body: some SwiftUI.View {
-        NavigationView {
-            ZStack{
-                if unlocked {
-                    VStack(alignment:.leading,spacing: 20){
-                        ForEach(accounts, id: \.0) { account in
-                            HStack{
-                                Spacer()
-                                Text("\(account.0)")
-                                    .bold()
-                                    .font(.title)
-                                
-                                Text("********")
-                                    .foregroundColor(.gray)
-                                    .font(.title2)
-                                
-                                Spacer()
-                                Spacer()
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                Spacer()
-                                
-                            }
-                            .frame(width: 350,height: 70)
-                            .background(Color.white)
-                            .cornerRadius(40)
-                            .onTapGesture {
-                                selectedAccount = account
-                                showDetailSheet = true
-                            }
-                        }
-                        Spacer()
-                    }
-                    
-                    VStack
-                    {
-                        Spacer()
-                        
-                        HStack{
-                            Spacer()
-                            Button(action: {
-                                showAddingSheet.toggle()
-                            }) {
-                                Image(systemName: "plus")
-                                    .bold()
-                                    .font(.system(.largeTitle))
-                                    .frame(width: 77, height: 70)
-                                    .foregroundColor(Color.white)
-                                    .padding(.bottom, 5)
-                                    .background(Color.blue)
-                                    .cornerRadius(9)
-                                    .padding()
-                                
-                                
-                            }
-                            .sheet(isPresented: $showAddingSheet) {
-                                AddRecordView { name, email, password in
-                                    saveRecord(name: name, email: email, password: password)
-                                    accounts = fetchRecords()
-                                }
-                                .presentationDetents([.medium])
-                                .presentationDragIndicator(.visible)
-                            }
-                            .sheet(isPresented: self.$showDetailSheet) {
-                                if let selectedAccount = selectedAccount {
-                                    AccountDetailView(name: selectedAccount.0, email: selectedAccount.1, encryptedPassword: selectedAccount.2,onSaveChanges: {name, email, password in
-                                        // Update the record in the database
-                                        updateRecord(name: name, email: email, password: password)
-                                        // Reload accounts from the database
-                                        accounts = fetchRecords()
-                                    },onDelete:{ deleteRecord(name:selectedAccount.0)},isSheetPresented: self.$showDetailSheet)
-                                }
-                                
-                            }
-                        }
-                    }
-                } else {
-                    Text("Locked")
-                }
-            }
-            .onAppear(){
-                do {
-                    selectedAccount = accounts.first
-                    authenticate()
-                    try generateAndStoreEncryptionKey()
-                    print("Encryption key generated and stored successfully.")
-                } catch {
-                    print("Error generating and storing encryption key: \(error)")
-                }
-            }
-            .navigationTitle("Password Manager")
-            .background(.ultraThinMaterial)
-        }
-    }
-    
-    func getKey() throws -> SymmetricKey {
-        // Check if key exists in the keychain
-        if let storedKeyData = try? keychain.getData("encryptionKey"),
-           let key = try? SymmetricKey(data: storedKeyData) {
-            return key
-        } else {
-            // Generate a new key
-            let key = SymmetricKey(size: .bits256)
-            // Store the key in the keychain
-            try? keychain.set(key.withUnsafeBytes { Data($0) }, key: "encryptionKey")
-            return key
-        }
-    }
-    
-    
-    
-    func saveRecord(name: String, email: String, password: String) {
-        do {
-            // Save record to database
-            let db = try Connection(getDatabasePath())
-            let records = Table("accounts")
-            let nameColumn = Expression<String>("name")
-            let emailColumn = Expression<String>("email")
-            let passwordColumn = Expression<String>("password")
-            try db.run(records.create(ifNotExists: true) { t in
-                t.column(nameColumn)
-                t.column(emailColumn)
-                t.column(passwordColumn)
-            })
-            try db.run(records.insert(nameColumn <- name, emailColumn <- email, passwordColumn <- password))
-        } catch {
-            print("Failed to save record: \(error)")
-        }
-    }
-    
-    func fetchRecords() -> [(String, String, String)] {
-        do {
-            let db = try Connection(getDatabasePath())
-            let records = Table("accounts")
-            let nameColumn = Expression<String>("name")
-            let emailColumn = Expression<String>("email")
-            let passwordColumn = Expression<String>("password")
-            var result: [(String, String, String)] = []
-            for record in try db.prepare(records) {
-                let name = record[nameColumn]
-                let email = record[emailColumn]
-                let password = record[passwordColumn]
-                result.append((name, email, password))
-            }
-            return result
-        } catch {
-            print("Failed to fetch records: \(error)")
-            return []
-        }
-    }
-    
-    //updateRecord
-    func updateRecord(name: String, email: String, password: String) {
-        do {
-            let db = try Connection(getDatabasePath())
-            let accounts = Table("accounts")
-            let nameColumn = Expression<String>("name")
-            let emailColumn = Expression<String>("email")
-            let passwordColumn = Expression<String>("password")
-            let filteredRecord = accounts.filter(nameColumn == name)
-            try db.run(filteredRecord.update(emailColumn <- email, passwordColumn <- password))
-        } catch {
-            print("Failed to update record: \(error)")
-        }
-    }
-    
-    //deleteRecord() - Deleting record based on name(like, google,twiter)
-    func deleteRecord(name: String) {
-        do {
-            let db = try Connection(getDatabasePath())
-            let records = Table("accounts")
-            let nameColumn = Expression<String>("name")
-            
-            // Delete record from the database
-            let recordToDelete = records.filter(nameColumn == name)
-            try db.run(recordToDelete.delete())
-            
-            // Refresh the accounts array after deletion
-            accounts = fetchRecords()
-        } catch {
-            print("Failed to delete record: \(error)")
-        }
-    }
-    
-    //authenticate() - for authenticate using biometric (eg. FaceID)
-    func authenticate() {
-        let context = LAContext()
-        var error: NSError?
-        
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-            let reason = "We need to unlock your data."
-            
-            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, authenticationError in
-                if success {
-                    DispatchQueue.main.async {
-                        self.unlocked = true
-                        self.accounts = fetchRecords()
-                    }
-                } else {
-                    print("Authentication failed: \(String(describing: authenticationError))")
-                }
-            }
-        } else {
-            print("No biometrics available: \(String(describing: error))")
-        }
-    }
-    
-    func getDatabasePath() -> String {
-        let fileManager = FileManager.default
-        let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
-        let documentDirectory = urls[0]
-        return documentDirectory.appendingPathComponent("db.sqlite3").path
-    }
-}
 
 #Preview {
     ContentView()
