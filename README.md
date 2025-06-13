@@ -1,5 +1,4 @@
 PasswordManager 
-Practical Number: MOBILEIIP02504.md
 
 Overview
 PasswordManager is a secure and user-friendly iOS application for managing your passwords. It uses biometrics for authentication and encryption to keep your data safe. This document provides clear instructions on how to build, run, and use the PasswordManager application.
