@@ -5,10 +5,7 @@
 //  Created by Hitesh Madaan on 05/06/24.
 //
 
-import LocalAuthentication
 import SwiftUI
-import CryptoKit
-import SQLite
 
 
 struct ContentView: SwiftUI.View {
@@ -29,7 +26,6 @@ enum DecryptionError: Error {
     case invalidData
     case invalidPassword
 }
-
 
 
 #Preview {

@@ -17,6 +17,10 @@
 		E13D08C12C2BF32300A46FE7 /* SFPRODISPLAYMEDIUM.OTF in Resources */ = {isa = PBXBuildFile; fileRef = E13D08BF2C2BF32300A46FE7 /* SFPRODISPLAYMEDIUM.OTF */; };
 		E13D08C72C2BF73100A46FE7 /* SF-Pro-Display-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = E13D08C62C2BF73100A46FE7 /* SF-Pro-Display-Semibold.otf */; };
 		E13D08C92C2C2EAA00A46FE7 /* SF-Pro-Display-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = E13D08C82C2C2EAA00A46FE7 /* SF-Pro-Display-Medium.otf */; };
+		E18959A92DFDD75000637072 /* AccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18959A82DFDD75000637072 /* AccountModel.swift */; };
+		E18959AB2DFDD76400637072 /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18959AA2DFDD76400637072 /* DatabaseManager.swift */; };
+		E18959AD2DFDD77D00637072 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18959AC2DFDD77D00637072 /* AuthManager.swift */; };
+		E18959AF2DFDD79C00637072 /* HomeContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18959AE2DFDD79C00637072 /* HomeContentViewModel.swift */; };
 		E19C61B52C11936B0092A3A6 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = E19C61B42C11936B0092A3A6 /* SQLite */; };
 		E19C61B82C11B9F30092A3A6 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = E19C61B72C11B9F30092A3A6 /* KeychainAccess */; };
 		E1BD8D1F2DFC8C9E003CEC5C /* HomeContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1BD8D1E2DFC8C9E003CEC5C /* HomeContentView.swift */; };
@@ -40,6 +44,10 @@
 		E13D08BF2C2BF32300A46FE7 /* SFPRODISPLAYMEDIUM.OTF */ = {isa = PBXFileReference; lastKnownFileType = file; path = SFPRODISPLAYMEDIUM.OTF; sourceTree = "<group>"; };
 		E13D08C62C2BF73100A46FE7 /* SF-Pro-Display-Semibold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SF-Pro-Display-Semibold.otf"; sourceTree = "<group>"; };
 		E13D08C82C2C2EAA00A46FE7 /* SF-Pro-Display-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SF-Pro-Display-Medium.otf"; sourceTree = "<group>"; };
+		E18959A82DFDD75000637072 /* AccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountModel.swift; sourceTree = "<group>"; };
+		E18959AA2DFDD76400637072 /* DatabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseManager.swift; sourceTree = "<group>"; };
+		E18959AC2DFDD77D00637072 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		E18959AE2DFDD79C00637072 /* HomeContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeContentViewModel.swift; sourceTree = "<group>"; };
 		E1BD8D1E2DFC8C9E003CEC5C /* HomeContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeContentView.swift; sourceTree = "<group>"; };
 		E1BD8D202DFC914B003CEC5C /* AddRecordContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRecordContentView.swift; sourceTree = "<group>"; };
 		E1BD8D222DFC925F003CEC5C /* AccountDetailContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDetailContentView.swift; sourceTree = "<group>"; };
@@ -113,6 +121,9 @@
 		E1BD8D132DFC8C03003CEC5C /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				E18959A82DFDD75000637072 /* AccountModel.swift */,
+				E18959AA2DFDD76400637072 /* DatabaseManager.swift */,
+				E18959AC2DFDD77D00637072 /* AuthManager.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -128,6 +139,7 @@
 		E1BD8D152DFC8C1B003CEC5C /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				E18959AE2DFDD79C00637072 /* HomeContentViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -305,10 +317,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				E1BD8D1F2DFC8C9E003CEC5C /* HomeContentView.swift in Sources */,
+				E18959AF2DFDD79C00637072 /* HomeContentViewModel.swift in Sources */,
+				E18959AD2DFDD77D00637072 /* AuthManager.swift in Sources */,
+				E18959A92DFDD75000637072 /* AccountModel.swift in Sources */,
 				E1CF62A62C10E1F900D21642 /* ContentView.swift in Sources */,
 				E1BD8D232DFC925F003CEC5C /* AccountDetailContentView.swift in Sources */,
 				E1CF62A42C10E1F900D21642 /* PasswordManagerApp.swift in Sources */,
 				E1BD8D212DFC914B003CEC5C /* AddRecordContentView.swift in Sources */,
+				E18959AB2DFDD76400637072 /* DatabaseManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
