@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,8 +18,6 @@
 		E13D08C72C2BF73100A46FE7 /* SF-Pro-Display-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = E13D08C62C2BF73100A46FE7 /* SF-Pro-Display-Semibold.otf */; };
 		E13D08C92C2C2EAA00A46FE7 /* SF-Pro-Display-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = E13D08C82C2C2EAA00A46FE7 /* SF-Pro-Display-Medium.otf */; };
 		E18959A92DFDD75000637072 /* AccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18959A82DFDD75000637072 /* AccountModel.swift */; };
-		E18959AB2DFDD76400637072 /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18959AA2DFDD76400637072 /* DatabaseManager.swift */; };
-		E18959AD2DFDD77D00637072 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18959AC2DFDD77D00637072 /* AuthManager.swift */; };
 		E18959AF2DFDD79C00637072 /* HomeContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E18959AE2DFDD79C00637072 /* HomeContentViewModel.swift */; };
 		E19C61B52C11936B0092A3A6 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = E19C61B42C11936B0092A3A6 /* SQLite */; };
 		E19C61B82C11B9F30092A3A6 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = E19C61B72C11B9F30092A3A6 /* KeychainAccess */; };
@@ -45,8 +43,6 @@
 		E13D08C62C2BF73100A46FE7 /* SF-Pro-Display-Semibold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SF-Pro-Display-Semibold.otf"; sourceTree = "<group>"; };
 		E13D08C82C2C2EAA00A46FE7 /* SF-Pro-Display-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SF-Pro-Display-Medium.otf"; sourceTree = "<group>"; };
 		E18959A82DFDD75000637072 /* AccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountModel.swift; sourceTree = "<group>"; };
-		E18959AA2DFDD76400637072 /* DatabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseManager.swift; sourceTree = "<group>"; };
-		E18959AC2DFDD77D00637072 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		E18959AE2DFDD79C00637072 /* HomeContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeContentViewModel.swift; sourceTree = "<group>"; };
 		E1BD8D1E2DFC8C9E003CEC5C /* HomeContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeContentView.swift; sourceTree = "<group>"; };
 		E1BD8D202DFC914B003CEC5C /* AddRecordContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRecordContentView.swift; sourceTree = "<group>"; };
@@ -57,6 +53,21 @@
 		E1CF62A72C10E1FB00D21642 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E1CF62AA2C10E1FB00D21642 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E11FB37D2E106B4900F1F1BC /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				AuthManager.swift,
+				DatabaseManager.swift,
+			);
+			target = E1CF629F2C10E1F900D21642 /* PasswordManager */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		E11FB37C2E106B3D00F1F1BC /* Helper */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E11FB37D2E106B4900F1F1BC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Helper; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		E1CF629D2C10E1F900D21642 /* Frameworks */ = {
@@ -122,8 +133,6 @@
 			isa = PBXGroup;
 			children = (
 				E18959A82DFDD75000637072 /* AccountModel.swift */,
-				E18959AA2DFDD76400637072 /* DatabaseManager.swift */,
-				E18959AC2DFDD77D00637072 /* AuthManager.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -191,6 +200,7 @@
 		E1CF62972C10E1F900D21642 = {
 			isa = PBXGroup;
 			children = (
+				E11FB37C2E106B3D00F1F1BC /* Helper */,
 				E1CF62A22C10E1F900D21642 /* PasswordManager */,
 				E1CF62A12C10E1F900D21642 /* Products */,
 			);
@@ -318,13 +328,11 @@
 			files = (
 				E1BD8D1F2DFC8C9E003CEC5C /* HomeContentView.swift in Sources */,
 				E18959AF2DFDD79C00637072 /* HomeContentViewModel.swift in Sources */,
-				E18959AD2DFDD77D00637072 /* AuthManager.swift in Sources */,
 				E18959A92DFDD75000637072 /* AccountModel.swift in Sources */,
 				E1CF62A62C10E1F900D21642 /* ContentView.swift in Sources */,
 				E1BD8D232DFC925F003CEC5C /* AccountDetailContentView.swift in Sources */,
 				E1CF62A42C10E1F900D21642 /* PasswordManagerApp.swift in Sources */,
 				E1BD8D212DFC914B003CEC5C /* AddRecordContentView.swift in Sources */,
-				E18959AB2DFDD76400637072 /* DatabaseManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
